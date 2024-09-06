@@ -45,4 +45,3 @@ module.exports = {
     Contact: mongoose.model('Contact', contactSchema),
     Note: mongoose.model('Note', noteSchema)
 };
-//How can I make this a premium version of this app better for real estate or business

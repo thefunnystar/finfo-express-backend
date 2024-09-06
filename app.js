@@ -2,12 +2,16 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
-const sassMiddleware = require('node-sass-middleware');
+const cors = require('cors');
+const dotenv = require('dotenv');
+
+dotenv.config({ path: './.env' }); // Make sure to load environment variables early
 
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
 const contactsRouter = require('./routes/contacts');
 const notesRouter = require('./routes/notes');
+const connectDB = require('./db.js');
 
 const app = express();
 
@@ -17,20 +21,27 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 // app.use(express.static(path.join(__dirname, 'public')));
 
+app.use(cors({
+    origin: 'http://localhost:5173',
+    methods: ['GET', 'POST']
+}));
+
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-app.use('contacts', contactsRouter);
-app.use('notes', notesRouter);
+// app.use('contacts', contactsRouter);
+// app.use('notes', notesRouter);
 
-dotenv.config({ path: './.env' });
-
-const { url } = require("inspector");
-const connectDB = require('./db.js');
-
-connectDB();
-const port = process.env.PORT || 5000;
-const server = backendApp.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-});
+// Connect to the database first, then start the server
+(async () => {
+    try {
+        await connectDB(); // Await the database connection
+        const port = process.env.PORT || 5000;
+        const server = app.listen(port, () => {
+            console.log(`Server running on port ${port}`);
+        });
+    } catch (error) {
+        console.error("Failed to connect to the database");
+    }
+})();
 
 module.exports = app;

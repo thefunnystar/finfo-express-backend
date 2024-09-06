@@ -1,6 +1,7 @@
 const express = require('express');
+const bcrypt = require('bcrypt');
 const router = express.Router();
-const User = require('../models/User');
+const { User } = require('../models');
 
 router.get('/register', (req, res) => {
     res.render('register');
@@ -9,23 +10,25 @@ router.get('/register', (req, res) => {
 router.post('/register', async (req, res) => {
     try {
       const { email, password, name } = req.body;
-      const newUser = new User({ email, password, name });
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const newUser = new User({ email, password: hashedPassword, name });
       await newUser.save();
+      res.status(201).send('User registered successfully');
       // do I need to redirect if my front end is separate?
-      res.redirect('/login');
+      // res.redirect('/login');
     } catch (err) {
         console.error(err);
         res.status(500).send('Server error');
     }
 });
 
-/* GET users listing. */
 router.get('/login', function(req, res, next) {
   // front end
   res.render('login');
 });
 
 router.post('/login', async (req, res) => {
+    console.log('Received request', req.body);
     try {
         const { email, password } = req.body;
 
