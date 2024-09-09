@@ -32,25 +32,26 @@ router.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        // Validate input data here //////
-
-        // should I use email instead of id?
         const user = await User.findOne({ email });
         if (!user) {
             return res.status(400).send('Invalid email or password');
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
-        if( !isMatch ) {
+        if (!isMatch) {
             return res.status(400).send('Invalid email or password');
         }
-        // front end
-        res.redirect('/dashboard');
+
+        res.status(200).send({
+            email: user.email,
+            name: user.name,
+        });
     } catch (err) {
         console.error(err);
         res.status(500).send('Server error');
     }
 });
+
 
 router.get('/logout', (req, res) => {
   // Clear session or token
@@ -58,8 +59,45 @@ router.get('/logout', (req, res) => {
   res.redirect('/login');
 });
 
-router.get('/dashboard', (req, res) => {
-    res.render('dashboard', { user: userData });
+router.put('/updateName', async (req, res) => {
+    const { email, newName } = req.body;
+    if (!email || !newName) {
+        return res.status(400).send('Email and new name are required');
+    }
+    try {
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(400).send('User not found');
+        }
+
+        user.name = newName;
+        await user.save();
+
+        res.status(200).send('Name updated successfully');
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server error');
+    }
 });
+
+router.put('/updatePassword', async (req, res) => {
+    const { email, newPassword } = req.body;
+    try {
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(400).send('User not found');
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        user.password = hashedPassword;
+        await user.save();
+
+        res.status(200).send('Password updated successfully');
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server error');
+    }
+});
+
 
 module.exports = router;

@@ -4,19 +4,18 @@ const { Contact, User } = require('../models'); // Import the Contact and User m
 
 router.post('/add', async (req, res) => {
     try {
-        const { userId, contactId, relationship, savedPhotos, sharedNotes, privateNotes, contactInfo } = req.body;
+        const { userEmail, contactId, contactName, relationship, savedPhotos, sharedNotes, privateNotes, contactInfo } = req.body;
 
-        // Validate if user exists before adding a contact
-        const user = await User.findById(userId);
-        const contact = await User.findById(contactId);
+        const user = await User.findOne({ email: userEmail }); // Find user by email
 
-        if (!user || !contact) {
-            return res.status(400).send('User or Contact does not exist');
+        if (!user) {
+            return res.status(400).send('User does not exist');
         }
 
         const newContact = new Contact({
-            userId,
+            userEmail,
             contactId,
+            contactName,
             relationship,
             savedPhotos,
             sharedNotes,
@@ -32,15 +31,36 @@ router.post('/add', async (req, res) => {
     }
 });
 
-router.get('/:userId', async (req, res) => {
+router.get('/contacts', async (req, res) => {
+    const { email } = req.query;
+
     try {
-        const contacts = await Contact.find({ userId: req.params.userId }).populate('contactId', 'name email profilePicture');
-        if (!contacts || contacts.length === 0) {
-            return res.status(404).send('No contacts found');
+        const user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(404).send('User not found');
         }
+
+        const contacts = await Contact.find({ userId: user._id });
         res.status(200).json(contacts);
     } catch (err) {
         console.error(err);
+        res.status(500).send('Server error');
+    }
+});
+
+router.get('/:userEmail', async (req, res) => {
+    try {
+        const { userEmail } = req.params;
+        const contacts = await Contact.find({ userEmail });
+
+        if (!contacts.length) {
+            return res.status(404).send('No contacts found for this user');
+        }
+
+        res.status(200).json(contacts);
+    } catch (err) {
+        console.error('Error fetching contacts:', err);
         res.status(500).send('Server error');
     }
 });

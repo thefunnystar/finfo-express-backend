@@ -5,7 +5,7 @@ const logger = require('morgan');
 const cors = require('cors');
 const dotenv = require('dotenv');
 
-dotenv.config({ path: './.env' }); // Make sure to load environment variables early
+dotenv.config({ path: './.env' });
 
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
@@ -23,18 +23,17 @@ app.use(cookieParser());
 
 app.use(cors({
     origin: 'http://localhost:5173',
-    methods: ['GET', 'POST']
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
 }));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-// app.use('contacts', contactsRouter);
-// app.use('notes', notesRouter);
+app.use('/contacts', contactsRouter);
+// app.use('/notes', notesRouter);
 
-// Connect to the database first, then start the server
 (async () => {
     try {
-        await connectDB(); // Await the database connection
+        await connectDB();
         const port = process.env.PORT || 5000;
         const server = app.listen(port, () => {
             console.log(`Server running on port ${port}`);

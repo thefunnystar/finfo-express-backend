@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-    _id: { type: String, required: true, default: () => mongoose.Types.ObjectId() }, // Generate a random ID
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     // gmailAccount: { type: Boolean },
@@ -9,18 +8,11 @@ const userSchema = new mongoose.Schema({
     name: { type: String, required: true }
 });
 
-// Pre-save middleware to set gmailAccount based on email
-// You will have to remove this code later
-// accountSchema.pre('save', function (next) {
-//     const emailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
-//     this.gmailAccount = emailRegex.test(this.email);
-//     next();
-// });
-
-//if there is no id, generate a small integer to be used as a private (client-side) id
 const contactSchema = new mongoose.Schema({
-    userId: { type: String, required: true, ref: 'User' },
-    contactId: { type: String, ref: 'User' },
+    userEmail: { type: String, required: true, ref: 'User' },
+    contactId: { type: String },
+    contactPhoto: { type: String },
+    contactName: { type: String, required: true },
     relationship: { type: String },
     savedPhotos: [{ type: String }],
     sharedNotes: [{ position: Number, content: String }],
@@ -37,7 +29,6 @@ const noteSchema = new mongoose.Schema({
 });
 
 //add a schema for posting moments
-//add a schema for promises
 //other app/account info: (tbd at very end)
 
 module.exports = {
